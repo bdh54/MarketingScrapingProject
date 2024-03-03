@@ -18,9 +18,7 @@ def create_sorted_ids_file(data_file):
     return sorted_file_path
 
 def loop_through_ids(data_file_path, bearer_token):
-    sorted_data_file_path = create_sorted_ids_file(data_file_path)
-
-    with open(sorted_data_file_path, 'r') as file:
+    with open(data_file_path, 'r') as file:
         ids = file.readlines()
         print(len(ids))
     
@@ -28,11 +26,15 @@ def loop_through_ids(data_file_path, bearer_token):
     for id_ in ids:
         id_ = id_.strip()  # Remove newline characters
         url = f"https://api.twitter.com/2/tweets/{id_}"
-        headers = {"Authorization": bearer_token}  # Fixed headers format
+        headers = {"Authorization": bearer_token}
         response = requests.get(url, headers=headers)
-        tweet = json.loads(response.text)
-        save_tweet_data(tweet, counter)
-        counter += 1
+        
+        if response.status_code == 200:
+            tweet = json.loads(response.text)
+            save_tweet_data(tweet, counter)
+            counter += 1
+        else:
+            print(f"Failed to fetch tweet ID {id_}: HTTP {response.status_code}")
 
 def save_tweet_data(tweet, counter):
     filename = 'X.data.file' + str(int(counter / 100000))
